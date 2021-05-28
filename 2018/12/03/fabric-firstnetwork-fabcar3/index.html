@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"holechain.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="基础环境搭建  操作系统：阿里云Ubuntu16.04Git、Golang、NodejsDocker环境支持：docker、docker-composeFabric组件Docker镜像fabric-samples源码库Nodejs： 8.9.4123#先看这个搭建Hyperledger Fabric基础环境https://blog.csdn.net/holechain/article/detail">
+<meta name="keywords" content="blockchain,hyperledger">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Hyperledger第三讲】Hyperledger Fabric1.x运行first-network和fabcar以及常见问题解决（持续更新）">
+<meta property="og:url" content="http://holechain.com/2018/12/03/fabric-firstnetwork-fabcar3/index.html">
+<meta property="og:site_name" content="MHXW">
+<meta property="og:description" content="基础环境搭建  操作系统：阿里云Ubuntu16.04Git、Golang、NodejsDocker环境支持：docker、docker-composeFabric组件Docker镜像fabric-samples源码库Nodejs： 8.9.4123#先看这个搭建Hyperledger Fabric基础环境https://blog.csdn.net/holechain/article/detail">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/0a2c89f2bc8346e083b63fb2ea2bb227">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/1331a19f7d804e62910fd2ca5ade9662">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/6214f3d1303b4ac8a09ef770175ecbeb">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/212977dd9df94b388ce606c5757f8737">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/212977dd9df94b388ce606c5757f8737">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/564f2bd840c7446ab83270f033d1385f">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/68d104a6e300406589e14d373dbf7a39">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/cd82e418313647eb844ba63de6dca17a">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/7bdfed4ff04c4def82c18291c8b818dd">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/558236b06391421aae54e49fe9d7acac">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/6b61b325d2c043b19ee736be236324bc">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/54542927eb3c4ca8ae8e809a018a86e2">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/54542927eb3c4ca8ae8e809a018a86e2">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/9559029fbff84d028fea1cf95e2dbd7a">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/9559029fbff84d028fea1cf95e2dbd7a">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/8e7e27a0b538467aa85ca6a1f71a2f29">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/8279337eed6e41238d6a8020541825a3">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/8279337eed6e41238d6a8020541825a3">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/4a072657521b4eba9272c1497fdc9875">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/3edeefe1819e48c29622f83a027829c8">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/615e91e3eb134b6fadeea55a5e49a1e6">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/430c83ad81004198bce8ef787e12d74d">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/38c4162040b24bbbaeb398ac5be46c0a">
+<meta property="og:image" content="http://p1.pstatp.com/large/pgc-image/dbf34b18c1a744a18b4df1fa8f57b500">
+<meta property="og:updated_time" content="2021-05-28T02:15:36.004Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Hyperledger第三讲】Hyperledger Fabric1.x运行first-network和fabcar以及常见问题解决（持续更新）">
+<meta name="twitter:description" content="基础环境搭建  操作系统：阿里云Ubuntu16.04Git、Golang、NodejsDocker环境支持：docker、docker-composeFabric组件Docker镜像fabric-samples源码库Nodejs： 8.9.4123#先看这个搭建Hyperledger Fabric基础环境https://blog.csdn.net/holechain/article/detail">
+<meta name="twitter:image" content="http://p1.pstatp.com/large/pgc-image/0a2c89f2bc8346e083b63fb2ea2bb227">
+
+<link rel="canonical" href="http://holechain.com/2018/12/03/fabric-firstnetwork-fabcar3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【Hyperledger第三讲】Hyperledger Fabric1.x运行first-network和fabcar以及常见问题解决（持续更新） | MHXW</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">MHXW</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">End-to-End Encryption</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://holechain.com/2018/12/03/fabric-firstnetwork-fabcar3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="美H向W">
+      <meta itemprop="description" content="Trust Creates Value">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MHXW">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【Hyperledger第三讲】Hyperledger Fabric1.x运行first-network和fabcar以及常见问题解决（持续更新）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-12-03 21:05:00" itemprop="dateCreated datePublished" datetime="2018-12-03T21:05:00+08:00">2018-12-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Technology/" itemprop="url" rel="index"><span itemprop="name">Technology</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Technology/Blockchain/" itemprop="url" rel="index"><span itemprop="name">Blockchain</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Technology/Blockchain/Hyperledger/" itemprop="url" rel="index"><span itemprop="name">Hyperledger</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="基础环境搭建"><a href="#基础环境搭建" class="headerlink" title="基础环境搭建"></a>基础环境搭建</h2><hr>
+<blockquote>
+<p>操作系统：阿里云Ubuntu16.04<br>Git、Golang、Nodejs<br>Docker环境支持：docker、docker-compose<br>Fabric组件Docker镜像<br>fabric-samples源码库<br>Nodejs： 8.9.4<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#先看这个搭建Hyperledger Fabric基础环境</span><br><span class="line">https://blog.csdn.net/holechain/article/details/88795776</span><br><span class="line">#（看到安装docker-compose完成即可，接下来看此篇）</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<a id="more"></a>
+<h2 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h2><hr>
+<h3 id="1-首先，使用下面的命令来安装-nvm（第一种方式，两种选其一即可）"><a href="#1-首先，使用下面的命令来安装-nvm（第一种方式，两种选其一即可）" class="headerlink" title="1. 首先，使用下面的命令来安装 nvm（第一种方式，两种选其一即可）"></a>1. 首先，使用下面的命令来安装 nvm（第一种方式，两种选其一即可）</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>下载并安装完成后用户退出重新登录或者重新 source 一下环境变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source ~/.bashrc</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看当前的版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvm ls</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>首次安装没有版本，使用<code>nvm install</code>安装指定版本的 node</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvm install v8.9.4</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>再次查看 node 版本信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvm list</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>博主之前已经安装<code>v6.9.5</code>，目前<code>-&gt;</code>所指是<code>v6.9.5</code>版本，需要切换成<code>v8.9.4</code>版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvm use v8.9.4</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/0a2c89f2bc8346e083b63fb2ea2bb227" alt="查看 node 版本信息和切换node版本"></p>
+<h3 id="2-手动安装Node-js（第二种方式）"><a href="#2-手动安装Node-js（第二种方式）" class="headerlink" title="2. 手动安装Node.js（第二种方式）"></a>2. 手动安装Node.js（第二种方式）</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">wget wget https://nodejs.org/dist/v8.9.4/node-v8.9.4-linux-x64.tar.gz</span><br><span class="line">tar -zxvf node-v8.9.4-linux-x64.tar.gz</span><br><span class="line">sudo mv node-v8.9.4-linux-x64 /usr/local/node</span><br><span class="line">sudo ln -s /usr/local/node/bin/node /usr/local/bin/node</span><br><span class="line">sudo ln -s /usr/local/node/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm</span><br></pre></td></tr></table></figure>
+<h3 id="3-测试是否安装成功，以及Node-js并设置镜像加速"><a href="#3-测试是否安装成功，以及Node-js并设置镜像加速" class="headerlink" title="3. 测试是否安装成功，以及Node.js并设置镜像加速"></a>3. 测试是否安装成功，以及<code>Node.js</code>并设置镜像加速</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br><span class="line">npm config set registry https://registry.npm.taobao.org</span><br></pre></td></tr></table></figure>
+<h2 id="构建网络"><a href="#构建网络" class="headerlink" title="构建网络"></a>构建网络</h2><hr>
+<ul>
+<li><p>创建<code>fabric-samples</code>目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p github.com/hyperledger/fabric-samples</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>进入<code>fabric-samples</code>下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/hyperledger/fabric-samples.git</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看版本分支</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git tag</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/1331a19f7d804e62910fd2ca5ade9662" alt="查看版本分支"></p>
+<ul>
+<li><p>切换项目版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout  release1.0</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看当前项目的版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git branch</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果你要删除已命名的分支，执行下方代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git branch -d release1.0</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>打开下方网址（下载<code>fabric-samples</code>目录下<code>bin</code>目录中所需要的文件）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>下载<code>hyperledger-fabric-linux-amd64-1.0.5.tar.gz</code>压缩包<br><img src="http://p1.pstatp.com/large/pgc-image/6214f3d1303b4ac8a09ef770175ecbeb" alt="下载Linux对应压缩包"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric/linux-amd64-1.0.5/hyperledger-fabric-linux-amd64-1.0.5.tar.gz</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>解压到<code>fabric-samples</code>目录下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -zxvf hyperledger-fabric-linux-amd64-1.0.5.tar.gz -C /home/go/src/github.com/hyperledger/fabric-samples</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><strong><em>第一种方式：</em></strong><br>start</p>
+<ul>
+<li>下载<code>dockerimages</code>执行文件复制并在<code>fabric-samples</code>中创建bootstrap.sh<br><img src="http://p1.pstatp.com/large/pgc-image/212977dd9df94b388ce606c5757f8737" alt="执行init.sh文件"></li>
+<li><p>在浏览器打开下方网站，复制该文件的内容到init.sh中（目的是下载fabric所需要的docker镜像）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://raw.githubusercontent.com/hyperledger/fabric/v1.0.5/scripts/bootstrap.sh</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>复制好之后，bootstrap.sh保存</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim bootstrap.sh</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>赋予权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod -R 777 bootstrap.sh</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>运行文件（<code>1.0.5</code>是指定fabric的docker镜像版本）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./bootstrap.sh 1.0.5</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><strong><em>第二种方式：</em></strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget https://raw.githubusercontent.com/hyperledger/fabric/master/scripts/bootstrap.sh</span><br><span class="line">cat bootstrap.sh | bash -s 1.0.5</span><br></pre></td></tr></table></figure></p>
+<p><strong><em>第三种方式：（需要kx上网）</em></strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -sSL https://goo.gl/6wtTN5 | sudo bash -s 1.0.5</span><br></pre></td></tr></table></figure></p>
+<p>end</p>
+<ul>
+<li>进入<code>first-network</code>目录中<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd first-network</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/212977dd9df94b388ce606c5757f8737" alt="是否已经构建，如果构建关闭重新构建"></p>
+<ul>
+<li>目录分析<blockquote>
+<ul>
+<li>.env：存储一些环境变量</li>
+<li>base：存储docker-compose的一些公共服务</li>
+<li>byfn.sh：执行脚本</li>
+<li>configtx.yaml和crypto-config.yaml：根据之前生成的2个工具，生成相应的配置文件，用来启动网络，放到当前目录的channel-artifacts和crypto-config里面</li>
+<li>dockper-compose：用于启动网络</li>
+<li>scripts：存放测试脚本，做的事：创建通道、加入通道，安装链码，实例化链码，链码交互</li>
+</ul>
+</blockquote>
+</li>
+<li><p>关闭网络，自动清除配置和docker进程</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./byfn.sh -m down</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行以下命令构建网络</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./byfn.sh -m generate</span><br><span class="line">#./byfn.sh -m generate -i 1.1.0</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="1-生成创世区块"><a href="#1-生成创世区块" class="headerlink" title="1.  生成创世区块"></a>1.  生成创世区块</h3><ul>
+<li><p>指定按照yaml文件生成配置（<code>crypto-config.yaml</code>：用于配置组织节点的个数）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">../bin/cryptogen generate --config=./crypto-config.yaml</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在<code>first-network</code>目录下设置变量：（设置工作目录）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export FABRIC_CFG_PATH=$PWD</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/564f2bd840c7446ab83270f033d1385f" alt="设置变量并创建初始区块"></p>
+<ul>
+<li>生成系统链的创世区块：（<code>-profile</code>指定联盟配置，<code>outputBlock</code>指定存放的位置，<code>genesis.block</code>指整个网络的创世区块）<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">../bin/configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="2-生成应用通道的配置信息"><a href="#2-生成应用通道的配置信息" class="headerlink" title="2.  生成应用通道的配置信息"></a>2.  生成应用通道的配置信息</h3><ul>
+<li>生成通道的创世交易：<code>-profile</code>指定业务联盟，<code>-outputCreateChannelTx</code>指存放的路径，创建的名字叫<code>mychannel</code></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export CHANNEL_NAME=mychannel</span><br><span class="line">../bin/configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/channelID $CHANNEL_NAME</span><br></pre></td></tr></table></figure>
+<p><img src="http://p1.pstatp.com/large/pgc-image/68d104a6e300406589e14d373dbf7a39" alt="生成应用通道的配置信息"></p>
+<h3 id="3-生成锚节点配置更新文件"><a href="#3-生成锚节点配置更新文件" class="headerlink" title="3. 生成锚节点配置更新文件"></a>3. 生成锚节点配置更新文件</h3><ul>
+<li>生成两个组织锚节点的交易信息<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">../bin/configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">../bin/configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP</span><br></pre></td></tr></table></figure>
+<h2 id="操作网络"><a href="#操作网络" class="headerlink" title="操作网络"></a>操作网络</h2><hr>
+<p>编辑<code>docker-compose-cli.yaml</code>，注释<code>command</code>命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim docker-compose-cli.yaml</span><br></pre></td></tr></table></figure></p>
+<p>运行<code>docker-compose-cli.yaml</code><br><img src="http://p1.pstatp.com/large/pgc-image/cd82e418313647eb844ba63de6dca17a" alt="image.png"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=600 docker-compose -f docker-compose-cli.yaml up -d</span><br></pre></td></tr></table></figure>
+<h3 id="1-创建和加入通道"><a href="#1-创建和加入通道" class="headerlink" title="1. 创建和加入通道"></a>1. 创建和加入通道</h3><ul>
+<li><p>与客户端交互操作</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it cli bash</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建通道（<code>-o</code>指定与哪个orderer节点通信，<code>-c</code>指定创建的通道名称，<code>-f</code>指定使用的文件）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export CHANNEL_NAME=mychannel</span><br><span class="line">peer channel create -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx --tls $CORE_PEER_TLS_ENABLED --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/7bdfed4ff04c4def82c18291c8b818dd" alt="image.png"></p>
+<ul>
+<li><p>查看orderer节点的运行日志</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker logs orderer.example.com</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>加入通道</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">peer channel join -b mychannel.block</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看peer加入的通道列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">peer channel list</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="2-安装并实例化链码"><a href="#2-安装并实例化链码" class="headerlink" title="2.  安装并实例化链码"></a>2.  安装并实例化链码</h3><hr>
+<ul>
+<li><p>安装链码（<code>-n</code>指定链码安装的名字，<code>-v</code>指定version，<code>-l</code>指定使用语言，<code>-p</code>指定安装链码的所在路径）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>实例化链码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode instantiate \</span><br><span class="line">-o orderer.example.com:7050 \</span><br><span class="line">--tls $CORE_PEER_TLS_ENABLED \</span><br><span class="line">--cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem \</span><br><span class="line">-C $CHANNEL_NAME \</span><br><span class="line">-n mycc \</span><br><span class="line">-v 1.0 \</span><br><span class="line">-c  &apos;&#123;&quot;Args&quot;:[&quot;init&quot;,&quot;a&quot;,&quot;100&quot;,&quot;b&quot;,&quot;200&quot;]&#125;&apos; \</span><br><span class="line">-P &quot;OR    (&apos;Org1MSP.member&apos;,&apos;Org2MSP.member&apos;)&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查询</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode query -C $CHANNEL_NAME -n mycc -c &apos;&#123;&quot;Args&quot;:[&quot;query&quot;,&quot;a&quot;]&#125;&apos;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/558236b06391421aae54e49fe9d7acac" alt="查询结果"></p>
+<ul>
+<li>转账<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode invoke \</span><br><span class="line">-o orderer.example.com:7050 \</span><br><span class="line">--tls $CORE_PEER_TLS_ENABLED \</span><br><span class="line">--cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem \</span><br><span class="line">-C $CHANNEL_NAME \</span><br><span class="line">-n mycc \</span><br><span class="line">-c &apos;&#123;&quot;Args&quot;:[&quot;invoke&quot;,&quot;a&quot;,&quot;b&quot;,&quot;10&quot;]&#125;&apos;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>点击<code>exit</code>退出<code>docker</code>容器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./byfn.sh -m down</span><br></pre></td></tr></table></figure></p>
+<p>###参数说明：</p>
+<ul>
+<li>-o：指定order服务节点地址</li>
+<li>–tls：是否开启TLS验证</li>
+<li>–cafile：指定TLS_CA证书的所在路径</li>
+<li>-C：指定通道名称</li>
+<li>-n：指定链码名称</li>
+<li>-c：指定调用链码的所需参数</li>
+<li>-p：指定安装链码的所在路径</li>
+<li>-P：指定背书策略<br>#Node.js和fabcar交互</li>
+</ul>
+<hr>
+<p>进入<code>fabric-samples</code>目录下的<code>fabcar</code>目录中<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd fabric-samples/fabcar</span><br></pre></td></tr></table></figure></p>
+<p>查看<code>package.json</code>文件<br><img src="http://p1.pstatp.com/large/pgc-image/6b61b325d2c043b19ee736be236324bc" alt="查看`package.json`文件"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat package.json</span><br></pre></td></tr></table></figure></p>
+<h2 id="Fabcar启动"><a href="#Fabcar启动" class="headerlink" title="Fabcar启动"></a>Fabcar启动</h2><hr>
+<ul>
+<li><p>进入first-network中执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./byfn.sh -m down</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>关闭活跃容器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker rm -f  $(docker ps -a)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>清理缓存的网络</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network prune</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>删除fabcar智能合约的底层链码图像，如果是第一次运行这个项目可以不执行（可以通过 docker  images来查询需要删除的镜像）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker rmi dev-peer0.org1.example.com-fabcar-1.0-5c906e402ed29f20260ae42283216aa75549c571e2e380f3615826365d8269ba</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在<code>fabcar</code>目录中安装客户端</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/54542927eb3c4ca8ae8e809a018a86e2" alt="npm install 中1"><br><img src="http://p1.pstatp.com/large/pgc-image/54542927eb3c4ca8ae8e809a018a86e2" alt="npm install 中2"></p>
+<ul>
+<li>启动网络<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./startFabric.sh  node</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/9559029fbff84d028fea1cf95e2dbd7a" alt="./startFabric.sh  node"></p>
+<ul>
+<li>执行完成后，注册管理用户（首先应用的admin用户应该向ca-server发送一个证书登记请求，接受一个对于这个user的登记证书（eCert），后续我们会根据使用这个admin注册和认证一个新的user）<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node enrollAdmin.js</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/9559029fbff84d028fea1cf95e2dbd7a" alt="node encrollAdmin.js运行成功"></p>
+<ul>
+<li>实现registerUser.js，生成用户账户（创建一个普通用户user1，这个用户用来查询和更新账本。admin用户身份用来创建user1用户）<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node registerUser.js</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/8e7e27a0b538467aa85ca6a1f71a2f29" alt="node registerUser.js运行成功"></p>
+<ul>
+<li>现在我们可以运行JavaScript程序。首先，运行query.js 程序，返回账本上所有汽车列表。应用程序中预先加载了一个queryAllCars函数，用于查询所有车辆，因此我们可以简单地运行程序：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node query.js</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/8279337eed6e41238d6a8020541825a3" alt="node query.js运行成功"></p>
+<ul>
+<li>如果想返回某个车辆信息，编辑query.js，我们将函数<code>queryAllCars</code>更改为<code>queryCar</code>并将特定的“Key” 传递给args参数。在这里，我们使用<code>CAR4</code>。 所以我们编辑后的query.js程序现在应该包含以下内容：</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/8279337eed6e41238d6a8020541825a3" alt="编辑query.js"></p>
+<ul>
+<li>重新运行query.js<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node query.js</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/4a072657521b4eba9272c1497fdc9875" alt="image.png"></p>
+<h2 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h2><hr>
+<ol>
+<li><p>运行<code>./byfn.sh -m down</code>出现错误的解决方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://segmentfault.com/a/1190000014221967</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行<code>node registerUser.js</code>出现错误：<code>Failed to register: Error: fabric-ca request register failed with errors [[{&quot;code&quot;:0,&quot;message&quot;:&quot;No identity type provided. Please provide identity type&quot;}]]</code><br><img src="http://p1.pstatp.com/large/pgc-image/3edeefe1819e48c29622f83a027829c8" alt="执行`node registerUser.js `出现错误"></p>
+</li>
+</ol>
+<ul>
+<li><p>大概的意思是需要我们提供一个可验证的type。 只需编辑 <code>node registerUser.js</code>文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim registerUser.js</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>把<code>returnfabric_ca_client.register({enrollmentID: &#39;user1&#39;, affiliation:&#39;org1.department1&#39;}, admin_user);</code>替换为下方代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">returnfabric_ca_client.register(&#123;enrollmentID: &apos;user1&apos;, affiliation:&apos;org1.department1&apos;,role: &apos;client&apos;&#125;, admin_user);</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><img src="http://p1.pstatp.com/large/pgc-image/615e91e3eb134b6fadeea55a5e49a1e6" alt=" node registerUser.js替换"></p>
+<ul>
+<li>点击保存重新运行即可</li>
+</ul>
+<ol start="3">
+<li><p>设置<code>marbles . step 4 error error: Caught exception: TypeError: Cannot read property &#39;getConnectivityState&#39; of undefined</code>出错</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">npm uninstall grpc</span><br><span class="line">rm -rf node_modules/</span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><img src="http://p1.pstatp.com/large/pgc-image/430c83ad81004198bce8ef787e12d74d" alt="node registerUser.js"><br><img src="http://p1.pstatp.com/large/pgc-image/38c4162040b24bbbaeb398ac5be46c0a" alt="image.png"></p>
+</li>
+</ol>
+<p><img src="http://p1.pstatp.com/large/pgc-image/dbf34b18c1a744a18b4df1fa8f57b500" alt="image.png"></p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><hr>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/IBM-Blockchain/marbles/blob/master/docs/use_local_hyperledger.md</span><br><span class="line">https://hyperledger-fabric.readthedocs.io/en/release-1.0/chaincode4noah.html</span><br><span class="line">https://hyperledger-fabric.readthedocs.io/en/release-1.0/write_first_app.html</span><br><span class="line">https://blog.csdn.net/qq_27348837/article/details/87362268</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/blockchain/" rel="tag"># blockchain</a>
+              <a href="/tags/hyperledger/" rel="tag"># hyperledger</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/12/02/fabric-ubuntu-deploy2/" rel="prev" title="【Hyperledger第二讲】Ubuntu 16.04部署HyperLedger Fabric1.0并成功运行e2e-cli">
+      <i class="fa fa-chevron-left"></i> 【Hyperledger第二讲】Ubuntu 16.04部署HyperLedger Fabric1.0并成功运行e2e-cli
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/12/13/mac-install-golang/" rel="next" title="Mac下安装与配置Go语言开发环境">
+      Mac下安装与配置Go语言开发环境 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基础环境搭建"><span class="nav-number">1.</span> <span class="nav-text">基础环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Node-js"><span class="nav-number">2.</span> <span class="nav-text">安装Node.js</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-首先，使用下面的命令来安装-nvm（第一种方式，两种选其一即可）"><span class="nav-number">2.1.</span> <span class="nav-text">1. 首先，使用下面的命令来安装 nvm（第一种方式，两种选其一即可）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-手动安装Node-js（第二种方式）"><span class="nav-number">2.2.</span> <span class="nav-text">2. 手动安装Node.js（第二种方式）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-测试是否安装成功，以及Node-js并设置镜像加速"><span class="nav-number">2.3.</span> <span class="nav-text">3. 测试是否安装成功，以及Node.js并设置镜像加速</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#构建网络"><span class="nav-number">3.</span> <span class="nav-text">构建网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-生成创世区块"><span class="nav-number">3.1.</span> <span class="nav-text">1.  生成创世区块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-生成应用通道的配置信息"><span class="nav-number">3.2.</span> <span class="nav-text">2.  生成应用通道的配置信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-生成锚节点配置更新文件"><span class="nav-number">3.3.</span> <span class="nav-text">3. 生成锚节点配置更新文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#操作网络"><span class="nav-number">4.</span> <span class="nav-text">操作网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-创建和加入通道"><span class="nav-number">4.1.</span> <span class="nav-text">1. 创建和加入通道</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-安装并实例化链码"><span class="nav-number">4.2.</span> <span class="nav-text">2.  安装并实例化链码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fabcar启动"><span class="nav-number">5.</span> <span class="nav-text">Fabcar启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FAQ"><span class="nav-number">6.</span> <span class="nav-text">FAQ</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文档"><span class="nav-number">7.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">美H向W</p>
+  <div class="site-description" itemprop="description">Trust Creates Value</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mhxw" title="GitHub → https://github.com/mhxw" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://mhxw.life/note" title="Note → https://mhxw.life/note" rel="noopener" target="_blank"><i class="fa fa-fw fa-stack-overflow"></i>Note</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">美H向W</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

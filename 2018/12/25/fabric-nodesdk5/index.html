@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"holechain.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Fabric Node SDK主要功能 SDK for Node.js有三个最顶层（top-level）的模块：API, fabric-client 和 fabric-ca-client。具体细节见官方文档及源码。">
+<meta name="keywords" content="blockchain,hyperledger">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Hyperledger第五讲】Hyperledger Fabric Node SDK详解">
+<meta property="og:url" content="http://holechain.com/2018/12/25/fabric-nodesdk5/index.html">
+<meta property="og:site_name" content="MHXW">
+<meta property="og:description" content="Fabric Node SDK主要功能 SDK for Node.js有三个最顶层（top-level）的模块：API, fabric-client 和 fabric-ca-client。具体细节见官方文档及源码。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-05-28T02:15:36.004Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Hyperledger第五讲】Hyperledger Fabric Node SDK详解">
+<meta name="twitter:description" content="Fabric Node SDK主要功能 SDK for Node.js有三个最顶层（top-level）的模块：API, fabric-client 和 fabric-ca-client。具体细节见官方文档及源码。">
+
+<link rel="canonical" href="http://holechain.com/2018/12/25/fabric-nodesdk5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【Hyperledger第五讲】Hyperledger Fabric Node SDK详解 | MHXW</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">MHXW</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">End-to-End Encryption</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://holechain.com/2018/12/25/fabric-nodesdk5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="美H向W">
+      <meta itemprop="description" content="Trust Creates Value">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MHXW">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【Hyperledger第五讲】Hyperledger Fabric Node SDK详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-12-25 22:00:00" itemprop="dateCreated datePublished" datetime="2018-12-25T22:00:00+08:00">2018-12-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Technology/" itemprop="url" rel="index"><span itemprop="name">Technology</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Technology/Blockchain/" itemprop="url" rel="index"><span itemprop="name">Blockchain</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Technology/Blockchain/Hyperledger/" itemprop="url" rel="index"><span itemprop="name">Hyperledger</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="Fabric-Node-SDK主要功能"><a href="#Fabric-Node-SDK主要功能" class="headerlink" title="Fabric Node SDK主要功能"></a>Fabric Node SDK主要功能</h3><hr>
+<p>SDK for Node.js有三个最顶层（top-level）的模块：API, fabric-client 和 fabric-ca-client。具体细节见官方文档及源码。<br><a id="more"></a></p>
+<ol>
+<li><p>API<br>该模块给开发者提供了可插拔API，以提供SDK主要接口的可替换实现，包括CryptoSuite, key, KeyValueStore。每个接口都有内置的默认实现。</p>
+</li>
+<li><p>fabric-client<br>该模块提供了用户客户端与Fabric区块链网络组件（peer，orderer，event等）的交互。主要功能有：</p>
+</li>
+</ol>
+<ul>
+<li>创建channel</li>
+<li>发送信息使peer节点加入channel</li>
+<li>在peer中安装（install）chaincode</li>
+<li>在channel上实例化 chaincode，分为两步：提案（ propose ）和交易（transact）</li>
+<li>提交（submit）一个交易（需要调用chaincode），和上面一样分为两步</li>
+<li>多种查询功能：状态（通过chaincode），交易，区块，channel，chaincode</li>
+<li>监控事件（monitoring events）：包括peer，block，transactions，custom的events</li>
+<li>有签名能力的用户对象（ User object）的序列化（serializable）</li>
+<li>配置信息的分层（hierarchical configuration settings）</li>
+<li>还提供可插拔（pluggable）的日志工具（logging utility）、加密工具（CryptoSuite）和状态存储方法（State Store），可以支持与 peer 或 orderer 的 TLS / non-TLS 链接</li>
+</ul>
+<ol start="3">
+<li>fabric-ca-client<br>该模块主要用于成员资格的管理，主要功能如下：</li>
+</ol>
+<ul>
+<li>注册（register ）新用户</li>
+<li>登录（enroll）用户并且获得由Fabric CA签名（CA私钥完成）的登录证书（enrollment certificate）</li>
+<li>通过登录id（enrollment id）来注销 (revoke) 一个用户</li>
+<li>可定制的（customizable）持久储存（persistence store）<h3 id="Fabric-Node-SDK具体接口"><a href="#Fabric-Node-SDK具体接口" class="headerlink" title="Fabric Node SDK具体接口"></a>Fabric Node SDK具体接口</h3></li>
+</ul>
+<hr>
+<p>Node SDK主要的模块及其中重要的方法如下：</p>
+<ol>
+<li>Client</li>
+</ol>
+<ul>
+<li>getUserContext() / setUserContext()：从本地读取/写入用户信息</li>
+<li>创建其他各种类的示例</li>
+</ul>
+<ol start="2">
+<li>CAClient</li>
+</ol>
+<ul>
+<li>register()：登记</li>
+<li>enroll()：注册</li>
+</ul>
+<ol start="3">
+<li>Channel</li>
+</ol>
+<ul>
+<li>sendTransactionProposal()：发送提案</li>
+<li>sendTransaction()：发送交易</li>
+<li>queryByChaincode()：调用链码查询</li>
+<li>各种与区块、交易有关的查询功能</li>
+</ul>
+<ol start="4">
+<li>Peer</li>
+</ol>
+<ul>
+<li>sendProposal()：发送交易提案到Peer节点</li>
+</ul>
+<ol start="5">
+<li>Orderer</li>
+</ol>
+<ul>
+<li>sendBrodcast()：发送数据到Ordere节点</li>
+<li>sendDeliver()：从Orderer节点获取数据</li>
+</ul>
+<p><strong>参考文档</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://fabric-sdk-node.github.io/release-1.4/index.html</span><br></pre></td></tr></table></figure></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/blockchain/" rel="tag"># blockchain</a>
+              <a href="/tags/hyperledger/" rel="tag"># hyperledger</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/12/18/fabric-balance-transfer4/" rel="prev" title="【Hyperledger第四讲】Hyperledger Fabric SDK示例 fabric-samples-《balance-transfer》">
+      <i class="fa fa-chevron-left"></i> 【Hyperledger第四讲】Hyperledger Fabric SDK示例 fabric-samples-《balance-transfer》
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/01/05/mac-install-mongodb/" rel="next" title="Mac安装配置MongoDB">
+      Mac安装配置MongoDB <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Fabric-Node-SDK主要功能"><span class="nav-number">1.</span> <span class="nav-text">Fabric Node SDK主要功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fabric-Node-SDK具体接口"><span class="nav-number">2.</span> <span class="nav-text">Fabric Node SDK具体接口</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">美H向W</p>
+  <div class="site-description" itemprop="description">Trust Creates Value</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mhxw" title="GitHub → https://github.com/mhxw" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://mhxw.life/note" title="Note → https://mhxw.life/note" rel="noopener" target="_blank"><i class="fa fa-fw fa-stack-overflow"></i>Note</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">美H向W</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"holechain.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="进入本地仓库，删除.git目录  script12cd $REPO_DIRrm -rf .git  重新git初始化并添加commit  script123git initgit add . # 重新添加所有的文件git commit -m &quot;first commit&quot;">
+<meta name="keywords" content="github,git">
+<meta property="og:type" content="article">
+<meta property="og:title" content="清空github远程仓库并重新上传">
+<meta property="og:url" content="http://holechain.com/2020/08/15/Empty-the-record-and-reupload-it-to-Github/index.html">
+<meta property="og:site_name" content="MHXW">
+<meta property="og:description" content="进入本地仓库，删除.git目录  script12cd $REPO_DIRrm -rf .git  重新git初始化并添加commit  script123git initgit add . # 重新添加所有的文件git commit -m &quot;first commit&quot;">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-05-28T02:15:36.002Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="清空github远程仓库并重新上传">
+<meta name="twitter:description" content="进入本地仓库，删除.git目录  script12cd $REPO_DIRrm -rf .git  重新git初始化并添加commit  script123git initgit add . # 重新添加所有的文件git commit -m &quot;first commit&quot;">
+
+<link rel="canonical" href="http://holechain.com/2020/08/15/Empty-the-record-and-reupload-it-to-Github/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>清空github远程仓库并重新上传 | MHXW</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">MHXW</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">End-to-End Encryption</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://holechain.com/2020/08/15/Empty-the-record-and-reupload-it-to-Github/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="美H向W">
+      <meta itemprop="description" content="Trust Creates Value">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MHXW">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          清空github远程仓库并重新上传
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-15 21:00:00" itemprop="dateCreated datePublished" datetime="2020-08-15T21:00:00+08:00">2020-08-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Learning/" itemprop="url" rel="index"><span itemprop="name">Learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ol>
+<li>进入本地仓库，删除.git目录</li>
+</ol>
+<figure class="highlight shell"><figcaption><span>script</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd $REPO_DIR</span><br><span class="line">rm -rf .git</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>重新git初始化并添加commit</li>
+</ol>
+<figure class="highlight shell"><figcaption><span>script</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git init</span><br><span class="line">git add . # 重新添加所有的文件</span><br><span class="line">git commit -m "first commit"</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<ol start="3">
+<li>添加远程仓库链接</li>
+</ol>
+<p>在添加远程仓库时，需要设置远程仓库的代号，本教程记为origin</p>
+<figure class="highlight shell"><figcaption><span>script</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git remote add origin git@github.com:xxxx/$REPO_DIR.git</span><br><span class="line"><span class="meta">#</span>git remote add origin git@github.com:mhxw/mhxw.github.io.git</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>强制提交，覆盖远程仓库的commits历史记录</li>
+</ol>
+<p>假设提交到远程仓库的master分支，则强制提交脚本如下：</p>
+<figure class="highlight shell"><figcaption><span>script</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git push -f origin master </span><br><span class="line"><span class="meta">#</span> 或者 git push --force origin master</span><br></pre></td></tr></table></figure>
+<p>推送tag到远程</p>
+<figure class="highlight shell"><figcaption><span>script</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git tag v0.1.0</span><br><span class="line">git push --force origin --tags v0.1.0</span><br></pre></td></tr></table></figure>
+<p><strong>后续讨论</strong></p>
+<ul>
+<li><p>细心的朋友可能会发现，上述操作之后，如果你还记得历史记录中某个commit的链接，你仍然可以通过链接访问到该commit下的文件，甚至可以基于这个commit重新创建新分支。为什么会出现这种情况呢？这其实和Git本身的设计机制有关，主要是为了提高容错率，防止你因为一些误操作弄丢了某些commits进而造成无法挽回的结果。</p>
+</li>
+<li><p>实际上，这些commits并没有马上被清理掉，仅仅是你的所有分支或标签无法访问到它们，这些commits被称为unreachable commits. 它们通常会被缓存一段时间，这个周期默认是30天，你也可以通过git命令行手动修改缓存周期或者手动清理。由于Github也是建立在Git这个版本管理工具上的网站，所以它也有这个机制。虽然它们在缓存期内仍然可以被访问到，但你clone到本地并不会包含它们，也就是说，你并不能在本地删除Github上已经存在的unreachable commits，因为本地根本访问不到它们（<a href="https://docs.github.com/cn/github/committing-changes-to-your-project/commit-exists-on-github-but-not-in-my-local-clone" target="_blank" rel="noopener">存在于 GitHub 上但不存在于本地克隆中的提交</a>）。如果不着急的话，你可以等30天之后再试试看是否还能访问这些unreachable commits的链接；但如果你很着急，你可以联系<a href="https://support.github.com/" target="_blank" rel="noopener">Github Support</a>帮你清理这些你不想保留的commits。</p>
+</li>
+<li><p>所以，如果你只是维护个人的文件仓库的话，不需要担心这个问题，你在新机器上clone下来的仍然是缩减大小之后的仓库，而Github上的unreachable commit会在缓存期后被清理掉。如果是与他人协作的仓库，还是谨慎使用<code>git push --force</code>这种危险的操作吧，确实遇到需要这个操作的场景时，考虑用更安全的<code>git push --force-with-lease</code>. 如果你强制提交之后发现后悔了，找到想恢复的commit的链接并创建新分支就可以找回那个commit所在历史分支之前的内容啦。</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/github/" rel="tag"># github</a>
+              <a href="/tags/git/" rel="tag"># git</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/15/how-do-i-publish-to-npmjs/" rel="prev" title="如何上传和删除js库到npmjs.com">
+      <i class="fa fa-chevron-left"></i> 如何上传和删除js库到npmjs.com
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/22/install-docker-on-ubuntu/" rel="next" title="Ubuntu安装docker">
+      Ubuntu安装docker <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">美H向W</p>
+  <div class="site-description" itemprop="description">Trust Creates Value</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mhxw" title="GitHub → https://github.com/mhxw" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://mhxw.life/note" title="Note → https://mhxw.life/note" rel="noopener" target="_blank"><i class="fa fa-fw fa-stack-overflow"></i>Note</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">美H向W</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

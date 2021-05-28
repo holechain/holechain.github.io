@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"holechain.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="准备环境 操作系统：阿里云Ubuntu16.04Git、GolangDocker环境支持：docker、docker-composeFabric组件Docker镜像Fabric源码库">
+<meta name="keywords" content="blockchain,hyperledger">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Hyperledger第二讲】Ubuntu 16.04部署HyperLedger Fabric1.0并成功运行e2e-cli">
+<meta property="og:url" content="http://holechain.com/2018/12/02/fabric-ubuntu-deploy2/index.html">
+<meta property="og:site_name" content="MHXW">
+<meta property="og:description" content="准备环境 操作系统：阿里云Ubuntu16.04Git、GolangDocker环境支持：docker、docker-composeFabric组件Docker镜像Fabric源码库">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/5946072-cca35bb656ec72b2.jpg">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/5946072-596232dbcc9460e9.jpg">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/5946072-0a2ba8815895b61e.jpg">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/5946072-c575cb530dd7752e.jpg">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/5946072-434668a920ccc3e5.jpg">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/5946072-299d82437a79b55a.jpg">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/5946072-57cf73dc7ec190f9.jpg">
+<meta property="og:updated_time" content="2021-05-28T02:15:36.004Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Hyperledger第二讲】Ubuntu 16.04部署HyperLedger Fabric1.0并成功运行e2e-cli">
+<meta name="twitter:description" content="准备环境 操作系统：阿里云Ubuntu16.04Git、GolangDocker环境支持：docker、docker-composeFabric组件Docker镜像Fabric源码库">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/5946072-cca35bb656ec72b2.jpg">
+
+<link rel="canonical" href="http://holechain.com/2018/12/02/fabric-ubuntu-deploy2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【Hyperledger第二讲】Ubuntu 16.04部署HyperLedger Fabric1.0并成功运行e2e-cli | MHXW</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">MHXW</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">End-to-End Encryption</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://holechain.com/2018/12/02/fabric-ubuntu-deploy2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="美H向W">
+      <meta itemprop="description" content="Trust Creates Value">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MHXW">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【Hyperledger第二讲】Ubuntu 16.04部署HyperLedger Fabric1.0并成功运行e2e-cli
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-12-02 21:00:00" itemprop="dateCreated datePublished" datetime="2018-12-02T21:00:00+08:00">2018-12-02</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Technology/" itemprop="url" rel="index"><span itemprop="name">Technology</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Technology/Blockchain/" itemprop="url" rel="index"><span itemprop="name">Blockchain</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Technology/Blockchain/Hyperledger/" itemprop="url" rel="index"><span itemprop="name">Hyperledger</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="准备环境"><a href="#准备环境" class="headerlink" title="准备环境"></a><strong>准备环境</strong></h2><blockquote>
+<p>操作系统：阿里云Ubuntu16.04<br>Git、Golang<br>Docker环境支持：docker、docker-compose<br>Fabric组件Docker镜像<br>Fabric源码库<br><a id="more"></a></p>
+</blockquote>
+<h2 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a><strong>安装步骤</strong></h2><p><strong>更新系统源</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br></pre></td></tr></table></figure></p>
+<h3 id="安装Git"><a href="#安装Git" class="headerlink" title="安装Git"></a><strong>安装Git</strong></h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install git</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看git版本信息</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git version</span><br></pre></td></tr></table></figure>
+<h3 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a><strong>安装Docker</strong></h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">参考文档：</span><br><span class="line">https://docs.docker.com/install/linux/docker-ce/ubuntu/</span><br><span class="line">https://yq.aliyun.com/articles/110806</span><br></pre></td></tr></table></figure>
+<ul>
+<li>自动安装</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看docker版本</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker version</span><br></pre></td></tr></table></figure>
+<p><img src="http://upload-images.jianshu.io/upload_images/5946072-cca35bb656ec72b2.jpg" alt="image"></p>
+<ul>
+<li>设置阿里云docker镜像加速器</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">网址：https://cr.console.aliyun.com/mirrors</span><br></pre></td></tr></table></figure>
+<h3 id="安装Docker-compose"><a href="#安装Docker-compose" class="headerlink" title="安装Docker-compose"></a><strong>安装Docker-compose</strong></h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">参考文档：</span><br><span class="line">https://docs.docker.com/compose/install/</span><br><span class="line">最新版地址：</span><br><span class="line">https://github.com/docker/compose/releases/</span><br></pre></td></tr></table></figure>
+<ul>
+<li>(官方途径)下载docker-compose，也可访问：<a href="http://link.zhihu.com/?target=https%3A//get.daocloud.io/" target="_blank" rel="noopener">https://get.daocloud.io</a>国内高速下载</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo curl -L &quot;https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)&quot; -o /usr/local/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<ul>
+<li>授权</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod +x /usr/local/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看版本信息</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose --version</span><br></pre></td></tr></table></figure>
+<p><img src="http://upload-images.jianshu.io/upload_images/5946072-596232dbcc9460e9.jpg" alt="image"></p>
+<ul>
+<li><p>创建docker用户组</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo groupadd docker</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>将当前用户添加到用户组（${USER}为自己当前的用户名）</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo usermod -aG docker $&#123;USER&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>重启docker</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+<ul>
+<li>切换或者退出当前账户再重新登入</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">su root             #切换到root用户</span><br><span class="line">su $&#123;USER&#125;          #再切换到原来的应用用户以上配置才生效</span><br></pre></td></tr></table></figure>
+<h3 id="安装Golang"><a href="#安装Golang" class="headerlink" title="安装Golang"></a><strong>安装Golang</strong></h3><ul>
+<li>访问国内此网站下载最新Linux稳定版的golang</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">中文社区网址：https://studygolang.com/dl</span><br><span class="line">获取安装包：wget https://dl.google.com/go/go1.11.linux-amd64.tar.gz</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>使用tar命令把安装包解压缩/usr/local文件夹下面</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -zxvf go1.11.linux-amd64.tar.gz -C /usr/local</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>设置环境变量</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/profile</span><br></pre></td></tr></table></figure>
+<ul>
+<li>添加内容，其中go的安装目录是/usr/local/go，go的工作目录是/home/go</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export GOPATH=/home/go</span><br><span class="line">export GOROOT=/usr/local/go</span><br><span class="line">export PATH=$GOROOT/bin:$PATH</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用source命令，使其配置信息生效</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source /etc/profile</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看go的版本信息</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go version</span><br></pre></td></tr></table></figure>
+<ul>
+<li>查看go的具体配置信息</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go env</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在GOPATH目录下创建go目录</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir go</span><br></pre></td></tr></table></figure>
+<ul>
+<li>进入go项目路径</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd /home/go</span><br></pre></td></tr></table></figure>
+<h2 id="Fabric部署"><a href="#Fabric部署" class="headerlink" title="Fabric部署"></a><strong>Fabric部署</strong></h2><ul>
+<li>在/home/go下创建目录</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p src/github.com/hyperledger</span><br><span class="line">cd src/github.com/hyperledger</span><br><span class="line">git clone https://github.com/hyperledger/fabric.git</span><br></pre></td></tr></table></figure>
+<ul>
+<li>进入 fabric 目录查看版本分支并切换分支</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd fabric</span><br><span class="line">git branch</span><br><span class="line">此处选择对应版本或公开发行版，我选择v1.0.0</span><br><span class="line">git checkout v1.0.0</span><br></pre></td></tr></table></figure>
+<ul>
+<li>下载fabric示例</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git clone -b master https://github.com/hyperledger/fabric-samples.git</span><br><span class="line">cd fabric-samples</span><br></pre></td></tr></table></figure>
+<ul>
+<li>进入 fabric-samples 目录查看版本分支并切换分支</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd fabric-samples</span><br><span class="line">git branch</span><br><span class="line">此处选择对应版本或公开发行版，我选择v1.0.0</span><br><span class="line">git checkout v1.0.0</span><br></pre></td></tr></table></figure>
+<p><strong>Fabric的Docker镜像下载</strong></p>
+<ul>
+<li>进入<code>fabrci/examples/e2e_cli/</code>目录，完成镜像下载，执行命令：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /home/go/src/github.com/hyperledger/fabrci/examples/e2e_cli/</span><br><span class="line">ls</span><br></pre></td></tr></table></figure>
+<ul>
+<li>ls之后显示，在官网找对应的docker镜像版本号（<a href="http://link.zhihu.com/?target=https%3A//hub.docker.com/u/hyperledger" target="_blank" rel="noopener">https://hub.docker.com/u/hyperledger</a>），因为安装的fabric1.0.0，故我找的是1.0.0，这一步十分重要</li>
+</ul>
+<p><img src="http://upload-images.jianshu.io/upload_images/5946072-0a2ba8815895b61e.jpg" alt="image"></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/5946072-c575cb530dd7752e.jpg" alt="image"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">source download-dockerimages.sh -c &#123;tags：输版本号&#125; -f &#123;tags：输版本号&#125;</span><br><span class="line">source download-dockerimages.sh -c x86_64-1.0.0 -f x86_64-1.0.0</span><br><span class="line">docker images</span><br></pre></td></tr></table></figure>
+<p><img src="http://upload-images.jianshu.io/upload_images/5946072-434668a920ccc3e5.jpg" alt="image"></p>
+<p><strong>启动Fabric并自动完成chaincode测试</strong></p>
+<ul>
+<li>进入刚刚的e2e_cli文件目录，执行</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./network_setup.sh up</span><br></pre></td></tr></table></figure>
+<p><img src="http://upload-images.jianshu.io/upload_images/5946072-299d82437a79b55a.jpg" alt="image"></p>
+<p>显示END-E2E表示测试成功</p>
+<p><strong>官方通过chaincode手动测试Fabric案例</strong></p>
+<ul>
+<li>重新打开一个窗口，在fabric目录下输入</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it cli bash</span><br></pre></td></tr></table></figure>
+<p><img src="http://upload-images.jianshu.io/upload_images/5946072-57cf73dc7ec190f9.jpg" alt="image"></p>
+<ul>
+<li>再输入</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode query -C mychannel -n mycc -c &apos;&#123;&quot;Args&quot;:[&quot;query&quot;,&quot;a&quot;]&#125;&apos;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>图例显示a结果90</li>
+<li>a给b转账50</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode invoke -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n mycc -c &apos;&#123;&quot;Args&quot;:[&quot;invoke&quot;,&quot;a&quot;,&quot;b&quot;,&quot;50&quot;]&#125;&apos;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>再执行查询语句，此时结果为40</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode query -C mychannel -n mycc -c &apos;&#123;&quot;Args&quot;:[&quot;query&quot;,&quot;a&quot;]&#125;&apos;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>最后，如果打算退出网络，先执行</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">exit</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在刚才fabric/examples/e2e_cli目录下执行</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./network_setup.sh down</span><br></pre></td></tr></table></figure>
+<h2 id="安装Fabric-SDK-Go"><a href="#安装Fabric-SDK-Go" class="headerlink" title="安装Fabric SDK Go"></a><strong>安装Fabric SDK Go</strong></h2><blockquote>
+<p>安装SDK</p>
+</blockquote>
+<ul>
+<li>下载软件包</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get -u github.com/hyperledger/fabric-sdk-go</span><br></pre></td></tr></table></figure>
+<ul>
+<li>安装依赖包</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd $GOPATH/src/github.com/hyperledger/fabric-sdk-go/</span><br><span class="line">chmod +x test/scripts/*.sh  # make depend-install操作会调用dependencies.sh脚本</span><br><span class="line">make depend</span><br></pre></td></tr></table></figure>
+<hr>
+<p><strong>FAQ</strong></p>
+<p>1、阿里云服务器，Ubuntu 报错 sudo: unable to resolve host</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">解决方案：https://blog.csdn.net/hhtnan/article/details/79551969</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">参考文档</span><br><span class="line">https://blog.csdn.net/cao0507/article/details/82080924</span><br><span class="line">https://docs.docker.com/install/linux/docker-ce/ubuntu/</span><br><span class="line">https://yq.aliyun.com/articles/110806</span><br><span class="line">https://github.com/docker/compose/releases/</span><br><span class="line">https://docs.docker.com/compose/install/</span><br><span class="line">https://github.com/hyperledger/fabric-sdk-go</span><br><span class="line">https://hub.docker.com/u/hyperledger</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/blockchain/" rel="tag"># blockchain</a>
+              <a href="/tags/hyperledger/" rel="tag"># hyperledger</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/12/01/fabric-basic-intro1/" rel="prev" title="【Hyperledger第一讲】HyperLedger Fabric基础介绍和架构原理">
+      <i class="fa fa-chevron-left"></i> 【Hyperledger第一讲】HyperLedger Fabric基础介绍和架构原理
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/12/03/fabric-firstnetwork-fabcar3/" rel="next" title="【Hyperledger第三讲】Hyperledger Fabric1.x运行first-network和fabcar以及常见问题解决（持续更新）">
+      【Hyperledger第三讲】Hyperledger Fabric1.x运行first-network和fabcar以及常见问题解决（持续更新） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#准备环境"><span class="nav-number">1.</span> <span class="nav-text">准备环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装步骤"><span class="nav-number">2.</span> <span class="nav-text">安装步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装Git"><span class="nav-number">2.1.</span> <span class="nav-text">安装Git</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装Docker"><span class="nav-number">2.2.</span> <span class="nav-text">安装Docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装Docker-compose"><span class="nav-number">2.3.</span> <span class="nav-text">安装Docker-compose</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装Golang"><span class="nav-number">2.4.</span> <span class="nav-text">安装Golang</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fabric部署"><span class="nav-number">3.</span> <span class="nav-text">Fabric部署</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Fabric-SDK-Go"><span class="nav-number">4.</span> <span class="nav-text">安装Fabric SDK Go</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">美H向W</p>
+  <div class="site-description" itemprop="description">Trust Creates Value</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/mhxw" title="GitHub → https://github.com/mhxw" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://mhxw.life/note" title="Note → https://mhxw.life/note" rel="noopener" target="_blank"><i class="fa fa-fw fa-stack-overflow"></i>Note</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">美H向W</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
